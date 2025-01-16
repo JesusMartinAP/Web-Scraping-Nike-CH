@@ -4,6 +4,7 @@ import threading
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
+import subprocess
 import random
 
 # Lista de User-Agents para rotar
@@ -40,15 +41,27 @@ def detener_proceso():
     continuar_ejecucion = False
     messagebox.showinfo("Proceso detenido", "El proceso de scraping se ha detenido.")
 
+# Función para verificar e instalar navegadores de Playwright
+def verificar_e_instalar_navegadores():
+    try:
+        subprocess.run(["playwright", "install"], check=True)
+    except Exception as e:
+        messagebox.showerror("Error", f"Error al instalar navegadores de Playwright: {e}")
+        return False
+    return True
+
 # Función principal del scraping
 def scraping(codigos):
     global continuar_ejecucion, resultados
     resultados = []
     continuar_ejecucion = True
 
+    if not verificar_e_instalar_navegadores():
+        return
+
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False)  # Cambiado a False para ver el navegador
+            browser = p.chromium.launch(headless=False)  # Ejecutar el navegador en modo visible
             context = browser.new_context(
                 user_agent=random.choice(USER_AGENTS),
                 viewport={"width": 1920, "height": 1080},
